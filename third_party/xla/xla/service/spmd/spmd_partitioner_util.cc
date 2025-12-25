@@ -2342,12 +2342,12 @@ GetReshardAllToAllSourceTargetDims(const HloSharding& source,
 
 bool CanReshardWithCollectivePermute(const HloSharding& source_input,
                                      const HloSharding& target_input) {
-  if (source_input.UseNamedShardingLeaf() &&
-      target_input.UseNamedShardingLeaf()) {
-    return source_input.dimensions() == target_input.dimensions() &&
-           source_input.named_sharding().dim_shardings() !=
-               target_input.named_sharding().dim_shardings();
-  }
+  // if (source_input.UseNamedShardingLeaf() &&
+  //     target_input.UseNamedShardingLeaf()) {
+  //   return source_input.dimensions() == target_input.dimensions() &&
+  //          source_input.named_sharding().dim_shardings() !=
+  //              target_input.named_sharding().dim_shardings();
+  // }
 
   HloSharding source =
       source_input.UseNamedShardingLeaf()
