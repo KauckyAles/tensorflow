@@ -15,6 +15,7 @@ limitations under the License.
 
 // See docs in ../ops/nn_ops.cc.
 
+#include <type_traits>
 #define EIGEN_USE_THREADS
 
 #include "tensorflow/core/kernels/xent_op.h"
