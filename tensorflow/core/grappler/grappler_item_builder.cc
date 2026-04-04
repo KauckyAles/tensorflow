@@ -14,6 +14,7 @@ limitations under the License.
 ==============================================================================*/
 #include "tensorflow/core/grappler/grappler_item_builder.h"
 
+#include <memory>
 #include <type_traits>
 #include <unordered_map>
 #include <unordered_set>
@@ -276,7 +277,7 @@ absl::Status RuntimeGraphOptimizer(const GraphDef& graph_def_arg,
   GraphConstructorOptions graph_ctor_opts;
   graph_ctor_opts.allow_internal_ops = true;
   graph_ctor_opts.expect_device_spec = false;
-  std::unique_ptr<Graph> graphptr(new Graph(function_library));
+  std::unique_ptr<Graph> graphptr = std::make_unique<Graph>(function_library);
 
   TF_RETURN_IF_ERROR(ConvertGraphDefToGraph(
       graph_ctor_opts, std::move(graph_def), graphptr.get()));
@@ -300,7 +301,7 @@ std::unique_ptr<GrapplerItem> GrapplerItemFromMetaGraphDef(
     LOG(ERROR) << "id must be non-empty.";
     return nullptr;
   }
-  std::unique_ptr<GrapplerItem> new_item(new GrapplerItem());
+  std::unique_ptr<GrapplerItem> new_item = std::make_unique<GrapplerItem>();
   new_item->id = id;
   new_item->graph = meta_graph.graph_def();
 
