@@ -1336,8 +1336,8 @@ void SchedulerState::GenerateRunMetadata(RunMetadata* metadata) {
   }
 }
 
-const std::unordered_map<std::string, int64_t>
-SchedulerState::GetPeakMemoryUsage() const {
+std::unordered_map<std::string, int64_t> SchedulerState::GetPeakMemoryUsage()
+    const {
   std::unordered_map<std::string, int64_t> result;
   for (const auto& device : device_) {
     const std::string& name = device.first;
@@ -1347,7 +1347,7 @@ SchedulerState::GetPeakMemoryUsage() const {
   return result;
 }
 
-const std::unordered_map<std::string, int64_t>
+std::unordered_map<std::string, int64_t>
 SchedulerState::GetPersistentMemoryUsage() const {
   std::unordered_map<std::string, int64_t> result;
   for (const auto& device : device_) {

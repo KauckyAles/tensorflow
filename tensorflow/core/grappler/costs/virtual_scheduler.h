@@ -107,7 +107,7 @@ struct DeviceState {
 
   struct NodePairHash {
    public:
-    const std::size_t operator()(
+    std::size_t operator()(
         const std::pair<const NodeDef*, int>& element) const {
       return std::hash<const NodeDef*>()(element.first);
     }
@@ -331,9 +331,8 @@ std::unique_ptr<ReadyNodeManager> ReadyNodeManagerFactory(
 // scheduler implementations.
 class SchedulerState {
  public:
-  SchedulerState(const bool use_static_shapes,
-                 const bool use_aggressive_shape_inference, Cluster* cluster,
-                 std::unique_ptr<VirtualPlacer> placer);
+  SchedulerState(bool use_static_shapes, bool use_aggressive_shape_inference,
+                 Cluster* cluster, std::unique_ptr<VirtualPlacer> placer);
   // Move constructor. Explicitly defined because it otherwise gets implicitly
   // deleted. SchedulerState is a move-only class, as we have a <unique_ptr>
   // for it in VirtualScheduler. A derivative of VirtualScheduler can move a
@@ -368,9 +367,8 @@ class SchedulerState {
   void GenerateRunMetadata(RunMetadata* metadata);
 
   // Returns per device memory usage.
-  const std::unordered_map<std::string, int64_t> GetPeakMemoryUsage() const;
-  const std::unordered_map<std::string, int64_t> GetPersistentMemoryUsage()
-      const;
+  std::unordered_map<std::string, int64_t> GetPeakMemoryUsage() const;
+  std::unordered_map<std::string, int64_t> GetPersistentMemoryUsage() const;
   void enable_mem_usage_tracking() { track_mem_usage_snapshot_ = true; }
   // Returns (read only) device and node states.
   const std::unordered_map<std::string, DeviceState>* GetDeviceStates() const {
@@ -467,9 +465,8 @@ class SchedulerState {
 class VirtualScheduler {
  public:
   // Does not take ownership of cluster or ready_nodes.
-  VirtualScheduler(const bool use_static_shapes,
-                   const bool use_aggressive_shape_inference, Cluster* cluster,
-                   ReadyNodeManager* ready_nodes,
+  VirtualScheduler(bool use_static_shapes, bool use_aggressive_shape_inference,
+                   Cluster* cluster, ReadyNodeManager* ready_nodes,
                    std::unique_ptr<VirtualPlacer> placer);
   // This constructor can be called by a derivative of VirtualScheduler to
   // construct the base class. It lets VirtualScheduler take ownership of
@@ -513,11 +510,10 @@ class VirtualScheduler {
     scheduler_state_->GenerateRunMetadata(metadata);
   }
   // Returns per device memory usage.
-  const std::unordered_map<std::string, int64_t> GetPeakMemoryUsage() const {
+  std::unordered_map<std::string, int64_t> GetPeakMemoryUsage() const {
     return scheduler_state_->GetPeakMemoryUsage();
   }
-  const std::unordered_map<std::string, int64_t> GetPersistentMemoryUsage()
-      const {
+  std::unordered_map<std::string, int64_t> GetPersistentMemoryUsage() const {
     return scheduler_state_->GetPersistentMemoryUsage();
   }
   // Returns VirtualScheduler (read only) device and node states.
