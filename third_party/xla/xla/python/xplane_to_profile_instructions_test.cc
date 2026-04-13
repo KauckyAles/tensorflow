@@ -178,7 +178,7 @@ void CreateXSpaceWithFingerprint(XSpace* space, int first_device_latency,
 TEST(XplaneToProfiledInstructionsProtoTest,
      ConvertXplaneUnderLogdirToProfiledInstructionsProto) {
   tensorflow::profiler::ProfiledInstructionsProto profile_proto;
-  std::string logdir = testing::TempDir() + "/logdir";
+  std::string logdir = testing::TempDir() + "/logdir_no_fingerprint";
   std::string run = tsl::profiler::GetCurrentTimeStampAsString();
   const std::string path = tsl::profiler::ProfilerJoinPath(logdir, run);
 
@@ -204,7 +204,7 @@ TEST(XplaneToProfiledInstructionsProtoTest,
 TEST(XplaneToProfiledInstructionsProtoTest,
      ConvertXplaneUnderLogdirToProfiledInstructionsProtoWithFingerprint) {
   tensorflow::profiler::ProfiledInstructionsProto profile_proto;
-  std::string logdir = testing::TempDir() + "/logdir";
+  std::string logdir = testing::TempDir() + "/logdir_with_fingerprint";
   std::string run = tsl::profiler::GetCurrentTimeStampAsString();
   const std::string path = tsl::profiler::ProfilerJoinPath(logdir, run);
 
