@@ -743,8 +743,11 @@ bool DebugFileIO::requestDiskByteUsage(uint64_t bytes) {
         strlen(env_tfdbg_disk_bytes_limit) == 0) {
       global_disk_bytes_limit_ = kDefaultGlobalDiskBytesLimit;
     } else {
-      strings::safe_strtou64(string(env_tfdbg_disk_bytes_limit),
-                             &global_disk_bytes_limit_);
+      if (!absl::SimpleAtoi(env_tfdbg_disk_bytes_limit,
+                            &global_disk_bytes_limit_)) {
+        LOG(ERROR) << "Invalid value for TFDBG_DISK_BYTES_LIMIT: "
+                   << env_tfdbg_disk_bytes_limit;
+      }
     }
   }
 
