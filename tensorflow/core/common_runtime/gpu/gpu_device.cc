@@ -494,8 +494,8 @@ Status BaseGPUDevice::InitScratchBuffers() {
           "Failed to allocate scratch buffer for device ",
           tf_device_id_.value());
     }
-    se::DeviceMemory<char> mem(
-        se::DeviceMemoryBase(scratch_buffer, scratch_buffer_size));
+    stream_executor::DeviceAddress<char> mem(stream_executor::DeviceAddressBase(
+        scratch_buffer, scratch_buffer_size));
     TF_RETURN_IF_ERROR(stream_->compute->MemZero(
         &mem, Eigen::kGpuScratchSize + sizeof(unsigned int)));
     scratch_ = static_cast<char*>(scratch_buffer);
@@ -633,7 +633,7 @@ Status BaseGPUDevice::Init(const SessionOptions& options) {
       // TODO(zhengxq): pin the thread to the same socket of the target GPU.
       thread_pool_.reset(new thread::ThreadPool(
           options.env, ThreadOptions(),
-          strings::StrCat("gpu_private_", tf_device_id_.value()),
+          absl::StrCat("gpu_private_", tf_device_id_.value()),
           static_cast<int32>(gpu_thread_count),
           !options.config.experimental().disable_thread_spinning(),
           /*allocator=*/nullptr));
@@ -647,7 +647,7 @@ Status BaseGPUDevice::Init(const SessionOptions& options) {
       set_tensorflow_device_thread_pool(thread_pool);
     } else {
       string error_message =
-          strings::StrCat("Invalid gpu_thread_mode: ", gpu_thread_mode);
+          absl::StrCat("Invalid gpu_thread_mode: ", gpu_thread_mode);
       LOG(WARNING) << error_message;
       return errors::InvalidArgument(error_message);
     }
@@ -705,8 +705,8 @@ Tensor BaseGPUDevice::CopyGpuTensorToHostDebugOnly(const Tensor& gpu_tensor) {
   auto stream = device_context_->stream();
   CHECK(stream  // Crash OK
             ->Memcpy(host_tensor.data(),
-                     se::DeviceMemoryBase(gpu_tensor.data(),
-                                          gpu_tensor.TotalBytes()),
+                     stream_executor::DeviceAddressBase(
+                         gpu_tensor.data(), gpu_tensor.TotalBytes()),
                      gpu_tensor.TotalBytes())
             .ok());
   CHECK(stream->BlockHostUntilDone().ok());  // Crash OK
@@ -1594,11 +1594,11 @@ Status BaseGPUDeviceFactory::CreateDevices(
             << im.strength << " edge matrix:";
     string line_buf = "     ";
     for (int i = 0; i < visible_gpu_order.size(); ++i) {
-      strings::StrAppend(&line_buf, visible_gpu_order[i].value(), " ");
+      absl::StrAppend(&line_buf, visible_gpu_order[i].value(), " ");
     }
     VLOG(1) << line_buf;
     for (int i = 0; i < visible_gpu_order.size(); ++i) {
-      line_buf = strings::StrCat(visible_gpu_order[i].value(), ":   ");
+      line_buf = absl::StrCat(visible_gpu_order[i].value(), ":   ");
       tsl::PlatformDeviceId gpu_id_i = visible_gpu_order[i];
       for (int j = 0; j < visible_gpu_order.size(); ++j) {
         tsl::PlatformDeviceId gpu_id_j = visible_gpu_order[j];
@@ -2008,7 +2008,7 @@ Status BaseGPUDeviceFactory::CreateGPUDevice(
 #endif  // TF_GPU_USE_PJRT
   CHECK_GE(tf_device_id.value(), 0);
   const string device_name =
-      strings::StrCat(name_prefix, "/device:GPU:", tf_device_id.value());
+      absl::StrCat(name_prefix, "/device:GPU:", tf_device_id.value());
   tsl::CheckValidTfDeviceId(
       DEVICE_GPU, se::GPUMachineManager()->VisibleDeviceCount(), tf_device_id);
   tsl::PlatformDeviceId platform_device_id;
