@@ -44,10 +44,22 @@ _profiler_lock = threading.Lock()
 
 @tf_export('profiler.experimental.ProfilerOptions', v1=[])
 class ProfilerOptions(
-    collections.namedtuple('ProfilerOptions', [
-        'host_tracer_level', 'python_tracer_level', 'device_tracer_level',
-        'delay_ms'
-    ])):
+    collections.namedtuple(
+        'ProfilerOptions',
+        [
+            'host_tracer_level',
+            'python_tracer_level',
+            'device_tracer_level',
+            'delay_ms',
+            'tc_perf_counter_sampling_options',
+            'scs_perf_counter_sampling_options',
+            'sctc_perf_counter_sampling_options',
+            'sctd_perf_counter_sampling_options',
+            'cmn_perf_counter_sampling_options',
+            'icr_perf_counter_sampling_options',
+        ],
+    )
+):
   """Options for finer control over the profiler.
 
   Use `tf.profiler.experimental.ProfilerOptions` to control `tf.profiler`
@@ -65,16 +77,46 @@ class ProfilerOptions(
       zero, each host will start profiling immediately upon receiving the
       request. Default value is `None`, allowing the profiler guess the best
       value.
+    tc_perf_counter_sampling_options: TPU TensorCore performance counter
+      sampling options in text proto format.
+    scs_perf_counter_sampling_options: TPU SparseCoreCore performance counter
+      sampling options in text proto format.
+    sctc_perf_counter_sampling_options: TPU SparseCoreCore Sequencer performance
+      counter sampling options in text proto format.
+    sctd_perf_counter_sampling_options: TPU SparseCoreCore DMA performance
+      counter sampling options in text proto format.
+    cmn_perf_counter_sampling_options: TPU CMN performance counter sampling
+      options in text proto format.
+    icr_perf_counter_sampling_options: TPU ICR performance counter sampling
+      options in text proto format.
   """
 
-  def __new__(cls,
-              host_tracer_level=2,
-              python_tracer_level=0,
-              device_tracer_level=1,
-              delay_ms=None):
-    return super(ProfilerOptions,
-                 cls).__new__(cls, host_tracer_level, python_tracer_level,
-                              device_tracer_level, delay_ms)
+  def __new__(
+      cls,
+      host_tracer_level=2,
+      python_tracer_level=0,
+      device_tracer_level=1,
+      delay_ms=None,
+      tc_perf_counter_sampling_options=None,
+      scs_perf_counter_sampling_options=None,
+      sctc_perf_counter_sampling_options=None,
+      sctd_perf_counter_sampling_options=None,
+      cmn_perf_counter_sampling_options=None,
+      icr_perf_counter_sampling_options=None,
+  ):
+    return super(ProfilerOptions, cls).__new__(
+        cls,
+        host_tracer_level,
+        python_tracer_level,
+        device_tracer_level,
+        delay_ms,
+        tc_perf_counter_sampling_options,
+        scs_perf_counter_sampling_options,
+        sctc_perf_counter_sampling_options,
+        sctd_perf_counter_sampling_options,
+        cmn_perf_counter_sampling_options,
+        icr_perf_counter_sampling_options,
+    )
 
 
 @tf_export('profiler.experimental.start', v1=[])
