@@ -1560,6 +1560,7 @@ tf_pyclif_proto_library(
 tf_proto_library(
     name = "log_memory_proto",
     srcs = ["log_memory.proto"],
+    compatible_with = ["//buildenv/target:non_prod"],
     make_default_target_header_only = True,
     deps = [
         ":allocation_description_proto",
@@ -1572,12 +1573,14 @@ tf_proto_library(
 tf_proto_library(
     name = "versions_proto",
     srcs = ["versions.proto"],
+    compatible_with = ["//buildenv/target:non_prod"],
     make_default_target_header_only = True,
 )
 
 tf_proto_library(
     name = "graph_proto",
     srcs = ["graph.proto"],
+    compatible_with = ["//buildenv/target:non_prod"],
     make_default_target_header_only = True,
     visibility = ["//visibility:public"],
     deps = [
@@ -1597,6 +1600,7 @@ tf_proto_library(
 tf_proto_library(
     name = "node_def_proto",
     srcs = ["node_def.proto"],
+    compatible_with = ["//buildenv/target:non_prod"],
     make_default_target_header_only = True,
     deps = [
         ":attr_value_proto",
@@ -1611,24 +1615,28 @@ tf_proto_library(
 tf_proto_library(
     name = "graph_debug_info_proto",
     srcs = ["graph_debug_info.proto"],
+    compatible_with = ["//buildenv/target:non_prod"],
     make_default_target_header_only = True,
 )
 
 tf_proto_library(
     name = "allocation_description_proto",
     srcs = ["allocation_description.proto"],
+    compatible_with = ["//buildenv/target:non_prod"],
     make_default_target_header_only = True,
 )
 
 tf_proto_library(
     name = "tensor_slice_proto",
     srcs = ["tensor_slice.proto"],
+    compatible_with = ["//buildenv/target:non_prod"],
     make_default_target_header_only = True,
 )
 
 tf_proto_library(
     name = "tensor_description_proto",
     srcs = ["tensor_description.proto"],
+    compatible_with = ["//buildenv/target:non_prod"],
     make_default_target_header_only = True,
     deps = [
         ":allocation_description_proto",
@@ -1640,6 +1648,7 @@ tf_proto_library(
 tf_proto_library(
     name = "device_attributes_proto",
     srcs = ["device_attributes.proto"],
+    compatible_with = ["//buildenv/target:non_prod"],
     make_default_target_header_only = True,
     visibility = ["//visibility:public"],
 )
@@ -1647,6 +1656,7 @@ tf_proto_library(
 tf_proto_library(
     name = "resource_handle_proto",
     srcs = ["resource_handle.proto"],
+    compatible_with = ["//buildenv/target:non_prod"],
     make_default_target_header_only = True,
     deps = [
         ":tensor_shape_proto",
@@ -1657,6 +1667,7 @@ tf_proto_library(
 tf_proto_library(
     name = "step_stats_proto",
     srcs = ["step_stats.proto"],
+    compatible_with = ["//buildenv/target:non_prod"],
     make_default_target_header_only = True,
     deps = [
         ":allocation_description_proto",
@@ -1669,12 +1680,14 @@ tf_proto_library(
 tf_proto_library(
     name = "reader_base_proto",
     srcs = ["reader_base.proto"],
+    compatible_with = ["//buildenv/target:non_prod"],
     make_default_target_header_only = True,
 )
 
 tf_proto_library(
     name = "kernel_def_proto",
     srcs = ["kernel_def.proto"],
+    compatible_with = ["//buildenv/target:non_prod"],
     make_default_target_header_only = True,
     deps = [
         ":attr_value_proto",
@@ -1688,6 +1701,7 @@ tf_proto_library(
 tf_proto_library(
     name = "op_def_proto",
     srcs = ["op_def.proto"],
+    compatible_with = ["//buildenv/target:non_prod"],
     make_default_target_header_only = True,
     visibility = [
         "//tensorflow/core:__subpackages__",
@@ -1706,6 +1720,7 @@ tf_proto_library(
 tf_proto_library(
     name = "attr_value_proto",
     srcs = ["attr_value.proto"],
+    compatible_with = ["//buildenv/target:non_prod"],
     make_default_target_header_only = True,
     visibility = [
         #internal library 0,
@@ -1726,6 +1741,7 @@ tf_proto_library(
 tf_proto_library(
     name = "full_type_proto",
     srcs = ["full_type.proto"],
+    compatible_with = ["//buildenv/target:non_prod"],
     make_default_target_header_only = True,
     deps = [],
 )
@@ -1733,6 +1749,7 @@ tf_proto_library(
 tf_proto_library(
     name = "tensor_proto",
     srcs = ["tensor.proto"],
+    compatible_with = ["//buildenv/target:non_prod"],
     make_default_target_header_only = True,
     deps = [
         ":resource_handle_proto",
@@ -1750,6 +1767,7 @@ tf_jspb_proto_library(
 tf_proto_library(
     name = "api_def_proto",
     srcs = ["api_def.proto"],
+    compatible_with = ["//buildenv/target:non_prod"],
     make_default_target_header_only = True,
     deps = [
         ":attr_value_proto",
@@ -1763,6 +1781,7 @@ tf_proto_library(
 tf_proto_library(
     name = "cpp_shape_inference_proto",
     srcs = ["cpp_shape_inference.proto"],
+    compatible_with = ["//buildenv/target:non_prod"],
     make_default_target_header_only = True,
     deps = [
         ":full_type_proto",
@@ -1774,12 +1793,14 @@ tf_proto_library(
 tf_proto_library(
     name = "variable_proto",
     srcs = ["variable.proto"],
+    compatible_with = ["//buildenv/target:non_prod"],
     make_default_target_header_only = True,
 )
 
 tf_proto_library(
     name = "graph_transfer_info_proto",
     srcs = ["graph_transfer_info.proto"],
+    compatible_with = ["//buildenv/target:non_prod"],
     make_default_target_header_only = True,
     deps = [
         ":types_proto",
@@ -1789,6 +1810,7 @@ tf_proto_library(
 tf_proto_library(
     name = "types_proto",
     srcs = ["types.proto"],
+    compatible_with = ["//buildenv/target:non_prod"],
     make_default_target_header_only = True,
     visibility = ["//visibility:public"],
 )
@@ -1802,6 +1824,7 @@ tf_jspb_proto_library(
 tf_proto_library(
     name = "cost_graph_proto",
     srcs = ["cost_graph.proto"],
+    compatible_with = ["//buildenv/target:non_prod"],
     make_default_target_header_only = True,
     deps = [
         ":tensor_shape_proto",
@@ -1812,12 +1835,14 @@ tf_proto_library(
 tf_proto_library(
     name = "tensor_shape_proto",
     srcs = ["tensor_shape.proto"],
+    compatible_with = ["//buildenv/target:non_prod"],
     make_default_target_header_only = True,
 )
 
 tf_proto_library(
     name = "function_proto",
     srcs = ["function.proto"],
+    compatible_with = ["//buildenv/target:non_prod"],
     make_default_target_header_only = True,
     visibility = [
         "//tensorflow/python:__pkg__",
@@ -1846,6 +1871,7 @@ tf_proto_library(
 tf_proto_library(
     name = "summary_proto",
     srcs = ["summary.proto"],
+    compatible_with = ["//buildenv/target:non_prod"],
     make_default_target_header_only = True,
     exports = ["@xla//xla/tsl/protobuf:histogram_proto"],
     deps = [
@@ -1860,12 +1886,14 @@ tf_proto_library(
 tf_proto_library(
     name = "model_proto",
     srcs = ["model.proto"],
+    compatible_with = ["//buildenv/target:non_prod"],
     make_default_target_header_only = True,
 )
 
 tf_proto_library(
     name = "dataset_proto",
     srcs = ["dataset.proto"],
+    compatible_with = ["//buildenv/target:non_prod"],
     make_default_target_header_only = True,
     deps = [
         ":tensor_proto",
@@ -1877,12 +1905,14 @@ tf_proto_library(
 tf_proto_library(
     name = "dataset_metadata_proto",
     srcs = ["dataset_metadata.proto"],
+    compatible_with = ["//buildenv/target:non_prod"],
     make_default_target_header_only = True,
 )
 
 tf_proto_library(
     name = "dataset_options_proto",
     srcs = ["dataset_options.proto"],
+    compatible_with = ["//buildenv/target:non_prod"],
     make_default_target_header_only = True,
     deps = [
         ":model_proto",
@@ -1892,6 +1922,7 @@ tf_proto_library(
 tf_proto_library(
     name = "optimized_function_graph_proto",
     srcs = ["optimized_function_graph.proto"],
+    compatible_with = ["//buildenv/target:non_prod"],
     make_default_target_header_only = True,
     deps = [
         ":graph_proto",
@@ -1901,6 +1932,7 @@ tf_proto_library(
 
 tf_proto_library(
     name = "protos_all",
+    compatible_with = ["//buildenv/target:non_prod"],
     make_default_target_header_only = True,
     tags = [
         "alt_dep=//third_party/tensorflow/core:protos_all",
