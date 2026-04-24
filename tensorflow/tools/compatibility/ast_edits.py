@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
+# Adding comment to test presubmit.
 """Upgrader for Python scripts according to an API change specification."""
 
 import ast
@@ -34,7 +35,7 @@ FIND_STRING_CHARS = re.compile(r"['\"]")
 INFO = "INFO"
 WARNING = "WARNING"
 ERROR = "ERROR"
-
+SAMPLE = "SAMPLE"
 
 ImportRename = collections.namedtuple(
     "ImportRename", ["new_name", "excluded_prefixes"])

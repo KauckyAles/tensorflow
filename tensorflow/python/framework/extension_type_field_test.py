@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
+# Adding comment to test presubmit.
 """Tests for tf.framework.extension_type_field."""
 
 import sys
@@ -29,7 +30,7 @@ from tensorflow.python.ops.ragged import ragged_factory_ops
 from tensorflow.python.ops.ragged import ragged_tensor
 from tensorflow.python.platform import googletest
 
-
+SAMPLE = "SAMPLE"
 if sys.version_info >= (3, 9):
   _TUPLE = tuple
 else:

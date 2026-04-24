@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
+# Adding comment to test presubmit.
 """Functional tests for 3d convolutional operations."""
 
 import itertools
@@ -27,7 +28,7 @@ from tensorflow.python.ops import gradients_impl
 from tensorflow.python.ops import math_ops
 from tensorflow.python.platform import test
 from tensorflow.python.platform import tf_logging
-
+SAMPLE = "SAMPLE"
 
 class BetaincTest(test.TestCase):
 

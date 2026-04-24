@@ -13,6 +13,7 @@
 # limitations under the License.
 #
 # ==============================================================================
+# Adding comment to test presubmit.
 """Smoke tests for tensorflow module."""
 
 import pkgutil
@@ -22,6 +23,7 @@ import tensorflow as tf
 from tensorflow.python import tf2
 from tensorflow.python.platform import test
 
+SAMPLE = "SAMPLE"
 
 class ModuleTest(test.TestCase):
 

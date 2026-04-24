@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-
+# Adding comment to test presubmit.
 import copy
 import os
 import pathlib
@@ -57,6 +57,7 @@ try:
 except ImportError:
   psutil_import_succeeded = False
 
+SAMPLE = "SAMPLE"
 
 class NonLayerTrackable(autotrackable.AutoTrackable):
 
