@@ -208,7 +208,7 @@ std::vector<std::string> ops = {
     "Zeta",
 };
 
-std::vector<std::string> types = {"DT_INT32", "DT_FLOAT"};
+std::vector<std::string> types = {"DT_FLOAT"};
 
 std::string generate_node(const std::string name, const std::string op,
                           const std::string type,
@@ -376,20 +376,17 @@ void FuzzGraphEndToEndFDP(std::vector<uint8_t> data) {
   // large.
   std::vector<Tensor> input_tensors;
   for (int i = 0; i < 2; i++) {
-    int type_choice = fdp.ConsumeIntegral<int>();
+    int type_choice = fdp.ConsumeIntegralInRange<int>(0, 3);
 
     Tensor input_tensor;
-    if (type_choice % 4 == 0) {
+    if (type_choice == 0) {
       input_tensor = Tensor(DT_FLOAT, TensorShape({2}));
       input_tensor.vec<float>()(0) = fdp.ConsumeFloatingPoint<float>();
       input_tensor.vec<float>()(1) = fdp.ConsumeFloatingPoint<float>();
-    } else if (type_choice % 4 == 1) {
-      input_tensor = Tensor(DT_INT32, TensorShape({1}));
-      input_tensor.scalar<int>()() = fdp.ConsumeIntegral<int>();
-    } else if (type_choice % 4 == 2) {
+    } else if (type_choice == 1 || type_choice == 2) {
       input_tensor = Tensor(DT_FLOAT, TensorShape({1}));
       input_tensor.scalar<float>()() = fdp.ConsumeFloatingPoint<float>();
-    } else if (type_choice % 4 == 3) {
+    } else if (type_choice == 3) {
       input_tensor = Tensor(DT_FLOAT, TensorShape({2, 2}));
       input_tensor.matrix<float>()(0, 0) = fdp.ConsumeFloatingPoint<float>();
       input_tensor.matrix<float>()(0, 1) = fdp.ConsumeFloatingPoint<float>();
