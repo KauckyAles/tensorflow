@@ -19,6 +19,11 @@ limitations under the License.
 
 #include "absl/base/casts.h"
 #include "absl/container/flat_hash_map.h"
+#include "absl/log/check.h"
+#include "absl/status/status.h"
+#include "absl/strings/string_view.h"
+#include "absl/types/span.h"
+#include "third_party/protobuf/io/coded_stream.h"
 #include "tensorflow/core/example/example.pb.h"
 #include "tensorflow/core/example/feature.pb.h"
 #include "tensorflow/core/framework/allocator.h"
@@ -136,7 +141,7 @@ class Feature {
       default:
         // Initialize variable to avoid compiler warning
         *dtype = DT_INVALID;
-        return errors::InvalidArgument("Unsupported datatype.");
+        return absl::InvalidArgumentError("Unsupported datatype.");
     }
     return absl::OkStatus();
   }
