@@ -51,7 +51,7 @@ using xla::AutotuneResult;
 
 template <typename T>
 se::DeviceMemory<T> AsDeviceMemory(const T* gpu_memory) {
-  se::DeviceMemoryBase wrapped(const_cast<T*>(gpu_memory));
+  stream_executor::DeviceAddressBase wrapped(const_cast<T*>(gpu_memory));
   se::DeviceMemory<T> typed(wrapped);
   return typed;
 }
@@ -68,8 +68,9 @@ bool RedzoneCheckDisabled();
 // Returns `buffer` if RedzoneCheckDisabled() is true.
 //
 // On error, return `buffer`, and log an error message (once).
-se::DeviceMemoryBase WrapRedzoneBestEffort(se::RedzoneAllocator* rz_allocator,
-                                           se::DeviceMemoryBase buffer);
+stream_executor::DeviceAddressBase WrapRedzoneBestEffort(
+    se::RedzoneAllocator* rz_allocator,
+    stream_executor::DeviceAddressBase buffer);
 
 // Check the passed allocator for redzone violations.
 // If violations have occurred, mark the corresponding autotune result
@@ -79,7 +80,8 @@ void CheckRedzones(const se::RedzoneAllocator& rz_allocator,
 
 template <typename T>
 inline se::DeviceMemory<T> AsDeviceMemory(const T* cuda_memory, uint64 size) {
-  se::DeviceMemoryBase wrapped(const_cast<T*>(cuda_memory), size * sizeof(T));
+  stream_executor::DeviceAddressBase wrapped(const_cast<T*>(cuda_memory),
+                                             size * sizeof(T));
   se::DeviceMemory<T> typed(wrapped);
   return typed;
 }
@@ -208,12 +210,12 @@ class AutotuneMap {
     const char* threshold_str = getenv("TF_AUTOTUNE_THRESHOLD");
     if (threshold_str != nullptr) {
       VLOG(1) << "TF_AUTOTUNE_THRESHOLD = " << threshold_str;
-      strings::safe_strto32(threshold_str, &min_score_threshold_);
+      absl::SimpleAtoi(threshold_str, &min_score_threshold_);
     }
     const char* min_warmup_iteration_str =
         getenv("TF_AUTOTUNE_MIN_WARMUP_ITERATIONS");
     if (min_warmup_iteration_str != nullptr) {
-      strings::safe_strto32(min_warmup_iteration_str, &min_warmup_iterations);
+      absl::SimpleAtoi(min_warmup_iteration_str, &min_warmup_iterations);
     }
     min_score_threshold_ = std::max(min_score_threshold_, 1);
     max_autotune_count_ = std::max(
@@ -264,9 +266,9 @@ class AutotuneSingleton {
 // Logs convolution results to customized back-storage.
 void LogConvAutotuneResults(se::dnn::ConvolutionKind kind,
                             se::dnn::DataType element_type,
-                            se::DeviceMemoryBase input_buffer,
-                            se::DeviceMemoryBase filter_buffer,
-                            se::DeviceMemoryBase output_buffer,
+                            stream_executor::DeviceAddressBase input_buffer,
+                            stream_executor::DeviceAddressBase filter_buffer,
+                            stream_executor::DeviceAddressBase output_buffer,
                             const se::dnn::BatchDescriptor& input_desc,
                             const se::dnn::FilterDescriptor& filter_desc,
                             const se::dnn::BatchDescriptor& output_desc,
@@ -276,9 +278,12 @@ void LogConvAutotuneResults(se::dnn::ConvolutionKind kind,
 
 // Logs fused convolution results to customized back-storage.
 void LogFusedConvForwardAutotuneResults(
-    se::dnn::DataType element_type, se::DeviceMemoryBase input_buffer,
-    se::DeviceMemoryBase filter_buffer, se::DeviceMemoryBase output_buffer,
-    se::DeviceMemoryBase bias_buffer, se::DeviceMemoryBase side_input_buffer,
+    se::dnn::DataType element_type,
+    stream_executor::DeviceAddressBase input_buffer,
+    stream_executor::DeviceAddressBase filter_buffer,
+    stream_executor::DeviceAddressBase output_buffer,
+    stream_executor::DeviceAddressBase bias_buffer,
+    stream_executor::DeviceAddressBase side_input_buffer,
     const se::dnn::BatchDescriptor& input_desc,
     const se::dnn::FilterDescriptor& filter_desc,
     const se::dnn::BatchDescriptor& output_desc,
@@ -289,11 +294,13 @@ void LogFusedConvForwardAutotuneResults(
 // Logs fused matmul results to customized back-storage.
 void LogFusedMatmulAutotuneResults(
     se::dnn::DataType ab_dtype, se::dnn::DataType c_dtype,
-    se::DeviceMemoryBase a_buffer, se::DeviceMemoryBase b_buffer,
-    se::DeviceMemoryBase c_buffer, se::DeviceMemoryBase bias_buffer,
-    bool trans_a, bool trans_b, uint32_t m, uint32_t n, uint32_t k, int32_t lda,
-    int32_t ldb, int32_t ldc, se::dnn::ActivationMode activation_mode,
-    se::StreamExecutor* stream_exec, absl::Span<const AutotuneResult> results);
+    stream_executor::DeviceAddressBase a_buffer,
+    stream_executor::DeviceAddressBase b_buffer,
+    stream_executor::DeviceAddressBase c_buffer,
+    stream_executor::DeviceAddressBase bias_buffer, bool trans_a, bool trans_b,
+    uint32_t m, uint32_t n, uint32_t k, int32_t lda, int32_t ldb, int32_t ldc,
+    se::dnn::ActivationMode activation_mode, se::StreamExecutor* stream_exec,
+    absl::Span<const AutotuneResult> results);
 
 // Autotuning map entry for cuDNN-frontend-capable APIs.
 //
