@@ -9,6 +9,9 @@ def tf_ops_fuzz_target_lib(name):
         deps = [
             "//tensorflow/core/kernels/fuzzing:fuzz_session",
             "//tensorflow/cc:cc_ops",
+            "//tensorflow/cc:ops",
+            "//tensorflow/cc:scope",
+            "//tensorflow/core/framework:types_proto_cc",
         ],
         tags = [
             "manual",
