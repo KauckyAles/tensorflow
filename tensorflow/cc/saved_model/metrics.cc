@@ -191,6 +191,19 @@ auto* sharding_callback_description = monitoring::Gauge<std::string, 0>::New(
     "/tensorflow/core/checkpoint/sharding/callback_description",
     "Describes the callback used to shard the checkpoint during saving.");
 
+// Gauge that contains the absolute timestamp (in nanoseconds) of the first
+// training step.
+auto* initialization_timestamp = monitoring::Gauge<int64_t, 0>::New(
+    "/tensorflow/core/initialization_timestamp",
+    "The absolute timestamp (in nanoseconds) of the first training step.");
+
+// Gauge that contains the absolute timestamp (in nanoseconds) of the last
+// successful checkpoint write.
+auto* last_checkpoint_timestamp = monitoring::Gauge<int64_t, 0>::New(
+    "/tensorflow/core/checkpoint/write/last_checkpoint_timestamp",
+    "The absolute timestamp (in nanoseconds) of the last successful "
+    "checkpoint write.");
+
 monitoring::CounterCell& SavedModelWriteCount(absl::string_view write_version) {
   return *saved_model_write_counter->GetCell(std::string(write_version));
 }
@@ -318,6 +331,22 @@ monitoring::CounterCell& NumCheckpointShardsWritten() {
 
 monitoring::GaugeCell<std::string>& ShardingCallbackDescription() {
   return *sharding_callback_description->GetCell();
+}
+
+monitoring::GaugeCell<int64_t>& InitializationTimestamp() {
+  return *initialization_timestamp->GetCell();
+}
+
+monitoring::GaugeCell<int64_t>& LastCheckpointTimestamp() {
+  return *last_checkpoint_timestamp->GetCell();
+}
+
+void SetInitializationTimestamp(int64_t timestamp) {
+  initialization_timestamp->GetCell()->Set(timestamp);
+}
+
+void SetLastCheckpointTimestamp(int64_t timestamp) {
+  last_checkpoint_timestamp->GetCell()->Set(timestamp);
 }
 
 }  // namespace metrics

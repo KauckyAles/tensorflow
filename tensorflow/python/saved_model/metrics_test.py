@@ -172,6 +172,14 @@ class MetricsTests(test.TestCase):
     self.assertEqual(callback_description_metric,
                      sharding_policies.ShardByTaskPolicy().description)
 
+  def test_initialization_timestamp(self):
+    metrics.SetInitializationTimestamp(123456789)
+    self.assertEqual(metrics.GetInitializationTimestamp(), 123456789)
+
+  def test_last_checkpoint_timestamp(self):
+    metrics.SetLastCheckpointTimestamp(987654321)
+    self.assertEqual(metrics.GetLastCheckpointTimestamp(), 987654321)
+
 
 if __name__ == "__main__":
   test.main()

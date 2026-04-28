@@ -471,6 +471,36 @@ void DefineMetricsModule(py::module main_module) {
       py::kw_only(), py::arg("description"),
       py::doc("Set value of "
               "'/tensorflow/core/checkpoint/sharding/callback_description'."));
+
+  m.def(
+      "SetInitializationTimestamp",
+      [](int64_t timestamp_ns) {
+        metrics::SetInitializationTimestamp(timestamp_ns);
+      },
+      py::arg("timestamp_ns"),
+      py::doc("Set the '/tensorflow/core/initialization_timestamp' gauge."));
+
+  m.def(
+      "GetInitializationTimestamp",
+      []() { return metrics::InitializationTimestamp().value(); },
+      py::doc("Get the '/tensorflow/core/initialization_timestamp' gauge."));
+
+  m.def(
+      "SetLastCheckpointTimestamp",
+      [](int64_t timestamp_ns) {
+        metrics::SetLastCheckpointTimestamp(timestamp_ns);
+      },
+      py::arg("timestamp_ns"),
+      py::doc("Set the "
+              "'/tensorflow/core/checkpoint/write/last_checkpoint_timestamp' "
+              "gauge."));
+
+  m.def(
+      "GetLastCheckpointTimestamp",
+      []() { return metrics::LastCheckpointTimestamp().value(); },
+      py::doc("Get the "
+              "'/tensorflow/core/checkpoint/write/last_checkpoint_timestamp' "
+              "gauge."));
 }
 
 }  // namespace python

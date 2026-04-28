@@ -204,5 +204,17 @@ TEST(MetricsTest, TestShardingCallbackDescription) {
   EXPECT_EQ(ShardingCallbackDescription().value(), "foo");
 }
 
+TEST(MetricsTest, TestInitializationTimestamp) {
+  EXPECT_EQ(InitializationTimestamp().value(), 0);
+  InitializationTimestamp().Set(123456789);
+  EXPECT_EQ(InitializationTimestamp().value(), 123456789);
+}
+
+TEST(MetricsTest, TestLastCheckpointTimestamp) {
+  EXPECT_EQ(LastCheckpointTimestamp().value(), 0);
+  LastCheckpointTimestamp().Set(987654321);
+  EXPECT_EQ(LastCheckpointTimestamp().value(), 987654321);
+}
+
 }  // namespace metrics
 }  // namespace tensorflow

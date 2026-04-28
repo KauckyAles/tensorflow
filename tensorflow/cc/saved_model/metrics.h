@@ -141,6 +141,18 @@ monitoring::CounterCell& NumCheckpointShardsWritten();
 // which describes the callback used to shard the checkpoint during saving.
 monitoring::GaugeCell<std::string>& ShardingCallbackDescription();
 
+// Returns "/tensorflow/core/initialization_timestamp" cell.
+monitoring::GaugeCell<int64_t>& InitializationTimestamp();
+
+// Returns "/tensorflow/core/checkpoint/write/last_checkpoint_timestamp" cell.
+monitoring::GaugeCell<int64_t>& LastCheckpointTimestamp();
+
+// Sets "/tensorflow/core/initialization_timestamp" gauge.
+void SetInitializationTimestamp(int64_t timestamp);
+
+// Sets "/tensorflow/core/checkpoint/write/last_checkpoint_timestamp" gauge.
+void SetLastCheckpointTimestamp(int64_t timestamp);
+
 }  // namespace metrics
 }  // namespace tensorflow
 

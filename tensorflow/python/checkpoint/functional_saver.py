@@ -543,8 +543,11 @@ class MultiDeviceSaver:
           # V2 format write path consists of a metadata merge step.  Once
           # merged, attempts to delete the temporary directory,
           # "<user-fed prefix>_temp".
-          return gen_io_ops.merge_v2_checkpoints(
-              saved_prefixes, file_prefix, delete_old_dirs=True)
+          merge_op = gen_io_ops.merge_v2_checkpoints(
+              saved_prefixes, file_prefix, delete_old_dirs=True
+          )
+          metrics.SetLastCheckpointTimestamp(int(time.time() * 1e9))
+          return merge_op
 
     # Since this will causes a function re-trace on each save, limit this to the
     # cases where it is needed: eager and when there are multiple tasks. Note

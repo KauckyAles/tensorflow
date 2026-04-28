@@ -1334,6 +1334,7 @@ class Saver:
       metrics.RecordCheckpointSize(
           api_label=_SAVER_LABEL,
           filesize=_get_checkpoint_size(model_checkpoint_path))
+      metrics.SetLastCheckpointTimestamp(int(time.time() * 1e9))
       return model_checkpoint_path
 
   def export_meta_graph(self,
