@@ -855,6 +855,13 @@ absl::Status MasterSession::ReffedClientGraph::RunPartitions(
     RunCallableResponse* resp, CancellationManager* cm) {
   VLOG(2) << "RunPartitions step_id " << step_id << " execution_count "
           << execution_count;
+
+  if (req.feed_size() < callable_opts_.feed_size()) {
+    return absl::InvalidArgumentError(absl::StrCat(
+        "RunCallableRequest has fewer feeds than expected: ", req.feed_size(),
+        " < ", callable_opts_.feed_size()));
+  }
+
   // Maps the names of fed tensors to their index in `req`.
   std::unordered_map<absl::string_view, size_t, StringPieceHasher> feeds(3);
   for (size_t i = 0, end = callable_opts_.feed_size(); i < end; ++i) {

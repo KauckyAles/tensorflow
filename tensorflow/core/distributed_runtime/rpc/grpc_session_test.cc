@@ -176,6 +176,42 @@ TEST(GrpcSessionTest, BasicCallable) {
   }
 }
 
+TEST(GrpcSessionTest, RunCallableWithFewerFeedsThanExpected) {
+  GraphDef graph;
+  std::string node_names[3];
+  CreateGraphDef(&graph, node_names);
+
+  std::unique_ptr<test::TestCluster> cluster;
+  TF_ASSERT_OK(test::TestCluster::MakeTestCluster(
+      TestClusterConfig()
+          .Options(Devices(1, 0))
+          .Jobs({TestJob{"localhost", /*num_tasks=*/2}}),
+      &cluster));
+
+  std::unique_ptr<Session> session(
+      NewRemote(Options(cluster->targets()[0], 1)));
+  ASSERT_TRUE(session != nullptr);
+
+  TF_ASSERT_OK(session->Create(graph));
+
+  CallableOptions opts;
+  opts.add_feed(node_names[0] + ":0");
+  opts.add_fetch(node_names[2] + ":0");
+  Session::CallableHandle handle;
+  TF_ASSERT_OK(session->MakeCallable(opts, &handle));
+
+  std::vector<Tensor> outputs;
+  // Call with empty feeds, but 1 feed is expected.
+  absl::Status status = session->RunCallable(handle, {}, &outputs, nullptr);
+  EXPECT_FALSE(status.ok());
+  EXPECT_EQ(absl::StatusCode::kInvalidArgument, status.code());
+  EXPECT_NE(status.message().find("has fewer feeds than expected"),
+            std::string::npos);
+
+  TF_ASSERT_OK(session->ReleaseCallable(handle));
+  TF_ASSERT_OK(session->Close());
+}
+
 TEST(GrpcSessionTest, CallableWithOnDeviceFeedsAndFetches) {
   // Specifying feeds/fetch devices for remote sessions is not yet defined.
   // Ensure that the error is graceful.
