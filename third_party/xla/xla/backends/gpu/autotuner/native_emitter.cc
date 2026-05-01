@@ -37,8 +37,7 @@ limitations under the License.
 #include "xla/tsl/platform/statusor.h"
 #include "xla/xla.pb.h"
 
-namespace xla {
-namespace gpu {
+namespace xla::gpu {
 
 // Returns true if the given instruction is a fusion instruction that is
 // supported by the native emitter backend.
@@ -69,7 +68,8 @@ NativeEmitterBackend::GetSupportedConfigs(const HloInstruction& instr) {
     return absl::InternalError("Failed to unpack default config.");
   }
 
-  if (default_config.type() != NativeEmitterType::NATIVE_EMITTER_TYPE_LOOP) {
+  if (!debug_options().xla_gpu_native_emitter_tune_unroll_factor_for_loops() ||
+      default_config.type() != NativeEmitterType::NATIVE_EMITTER_TYPE_LOOP) {
     configs.push_back(std::move(default_config_any));
     return configs;
   }
@@ -121,8 +121,13 @@ absl::Status NativeEmitterBackend::ApplyConfig(HloInstruction& instr,
     return absl::InvalidArgumentError(
         "Invalid backend config type for NativeEmitterBackendConfig.");
   }
+  HloInstruction::FusionKind fusion_kind =
+      native_emitter_fusion_config.type() ==
+              NativeEmitterType::NATIVE_EMITTER_TYPE_LOOP
+          ? HloInstruction::FusionKind::kLoop
+          : HloInstruction::FusionKind::kInput;
   auto fusion_instr = Cast<HloFusionInstruction>(&instr);
-  fusion_instr->set_fusion_kind(HloInstruction::FusionKind::kInput);
+  fusion_instr->set_fusion_kind(fusion_kind);
   TF_ASSIGN_OR_RETURN(GpuBackendConfig gpu_backend_config,
                       instr.backend_config<GpuBackendConfig>());
   *gpu_backend_config.mutable_native_emitter_backend_config() =
@@ -131,5 +136,4 @@ absl::Status NativeEmitterBackend::ApplyConfig(HloInstruction& instr,
   return absl::OkStatus();
 }
 
-}  // namespace gpu
-}  // namespace xla
+}  // namespace xla::gpu

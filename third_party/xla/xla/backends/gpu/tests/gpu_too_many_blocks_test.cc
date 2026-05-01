@@ -19,19 +19,14 @@ limitations under the License.
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include "absl/status/statusor.h"
-#include "xla/backends/gpu/tests/gpu_codegen_test.h"
+#include "xla/backends/gpu/tests/gpu_pjrt_codegen_test.h"
 #include "xla/hlo/ir/hlo_module.h"
 #include "xla/service/executable.h"
-#include "xla/stream_executor/stream_executor_memory_allocator.h"
-#include "tsl/platform/statusor.h"
-#include "tsl/platform/test.h"
 
-namespace xla {
-namespace gpu {
-
+namespace xla::gpu {
 namespace {
 
-class TooManyBlocksTest : public GpuCodegenTest {};
+class TooManyBlocksTest : public GpuPjRtCodegenTest {};
 
 TEST_F(TooManyBlocksTest, FailsWithInvalidStatus) {
   // This test ensures that invalid (too large) launch grids are caught
@@ -49,15 +44,11 @@ ENTRY primitive_computation_mul.8 {
   ROOT multiply.5 = s8[65536,65536,65536,128,16] multiply(broadcast.3, broadcast.4)
 }
 )";
-  TF_ASSERT_OK_AND_ASSIGN(std::unique_ptr<HloModule> optimized_module,
-                          GetOptimizedModule(hlo_text));
-
-  stream_executor::StreamExecutorAddressAllocator allocator(
-      backend().default_stream_executor());
-  absl::StatusOr<std::unique_ptr<Executable>> failed_executable =
-      backend().compiler()->RunBackend(std::move(optimized_module),
-                                       backend().default_stream_executor(),
-                                       &allocator);
+  ASSERT_OK_AND_ASSIGN(std::unique_ptr<HloModule> hlo_module,
+                       ParseAndReturnVerifiedModule(hlo_text));
+  auto failed_executable =
+      CompileToExecutable(std::move(hlo_module),
+                          /*run_optimization_passes=*/true);
 
   EXPECT_FALSE(failed_executable.ok());
   EXPECT_THAT(
@@ -66,5 +57,4 @@ ENTRY primitive_computation_mul.8 {
 }
 
 }  // namespace
-}  // namespace gpu
-}  // namespace xla
+}  // namespace xla::gpu
