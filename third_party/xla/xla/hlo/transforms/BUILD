@@ -657,6 +657,7 @@ cc_library(
     srcs = ["hlo_module_stitcher.cc"],
     hdrs = ["hlo_module_stitcher.h"],
     deps = [
+        "//third_party/gloop/util/status:ret_check",
         "//xla:shape_util",
         "//xla/hlo/ir:hlo",
         "//xla/hlo/pass:hlo_pass",
@@ -721,6 +722,7 @@ xla_cc_test(
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
         "@com_google_absl//absl/strings:string_view",
         "@com_google_googletest//:gtest_main",
     ],
