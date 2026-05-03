@@ -14,6 +14,8 @@ limitations under the License.
 ==============================================================================*/
 
 // See docs in ../ops/array_ops.cc.
+#include "absl/status/statusor.h"
+#include "tensorflow/core/framework/types.pb.h"
 #define EIGEN_USE_THREADS
 
 #include "tensorflow/core/kernels/gather_nd_op.h"

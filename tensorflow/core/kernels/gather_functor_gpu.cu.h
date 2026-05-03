@@ -16,6 +16,8 @@ limitations under the License.
 #ifndef TENSORFLOW_CORE_KERNELS_GATHER_FUNCTOR_GPU_CU_H_
 #define TENSORFLOW_CORE_KERNELS_GATHER_FUNCTOR_GPU_CU_H_
 
+#include "absl/log/check.h"
+#include "absl/status/status.h"
 #if GOOGLE_CUDA || TENSORFLOW_USE_ROCM
 
 #define EIGEN_USE_GPU

@@ -15,6 +15,10 @@ limitations under the License.
 
 #include "tensorflow/core/kernels/host_constant_op.h"
 
+#include <cstdint>
+
+#include "absl/status/status.h"
+#include "absl/strings/str_cat.h"
 #include "tensorflow/core/framework/allocator.h"
 #include "tensorflow/core/framework/op_kernel.h"
 #include "tensorflow/core/framework/types.h"
