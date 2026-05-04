@@ -400,6 +400,21 @@ message DebugOptions {
     CAPTURE_CMD_NEVER_UPDATE = 2;
   }
 
+  // Controls CUB sort behavior during deviceless GPU compilation. CUB sort
+  // needs a scratch buffer whose size is usually queried from a live device.
+  // Deviceless compilation relies on pre-computed lookups instead.
+  enum DevicelessCubMode {
+    DEVICELESS_CUB_UNSET = 0;
+    // Disable CUB rewrites entirely in deviceless mode; fallback to slower
+    // alternatives.
+    DEVICELESS_CUB_DISABLED = 1;
+    // Use CUB if deviceless lookup data exists; otherwise fallback to slower
+    // alternatives.
+    DEVICELESS_CUB_FAIL_OPEN = 2;
+    // Use CUB if deviceless lookup data exists; otherwise fail compilation.
+    DEVICELESS_CUB_FAIL_CLOSED = 3;
+  }
+
   // Experimental optimizations for SPMD-based pipeline parallelism on GPU.
   enum PipelineParallelismOptLevel {
     PIPELINE_PARALLELISM_OPT_LEVEL_DISABLE = 0;
@@ -413,6 +428,8 @@ message DebugOptions {
     reserved "PIPELINE_PARALLELISM_OPT_LEVEL_ENABLE_CYCLE_DECOMPOSER";
     reserved 2;
   }
+
+  optional DevicelessCubMode xla_gpu_deviceless_cub_mode = 478;
 
   // Limits the thunk buffer debug instrumentation to specific thunks.
   optional ThunkBufferDebugFilter

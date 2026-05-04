@@ -1670,9 +1670,9 @@ ENTRY %main {
 
   absl::ScopedMockLog mock_log(absl::MockLogDefault::kIgnoreUnexpected);
   EXPECT_CALL(mock_log,
-              Log(absl::LogSeverity::kWarning, EndsWith("/gpu_compiler.cc"),
+              Log(absl::LogSeverity::kWarning, EndsWith("/sort_rewriter.cc"),
                   StartsWith("Using fallback sort algorithm")))
-      .Times(1);
+      .Times(::testing::AtLeast(1));
 
   // StartCapturingLogs has to be called even if we expect not to capture any
   // logs.
