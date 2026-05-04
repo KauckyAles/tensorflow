@@ -1267,7 +1267,7 @@ Status SingleVirtualDeviceMemoryLimit(const GPUOptions& gpu_options,
   if (force_device_reserved_bytes != nullptr &&
       strcmp(force_device_reserved_bytes, "") != 0) {
     int64_t reserved_mb;
-    if (!strings::safe_strto64(force_device_reserved_bytes, &reserved_mb) ||
+    if (!absl::SimpleAtoi(force_device_reserved_bytes, &reserved_mb) ||
         reserved_mb < 0) {
       LOG(WARNING) << "The requested reserved device memory "
                    << force_device_reserved_bytes
@@ -2218,7 +2218,7 @@ static int GetMinGPUMultiprocessorCount(
   }
 
   int min_gpu_core_count = -1;
-  if (strings::safe_strto32(tf_min_gpu_core_count, &min_gpu_core_count)) {
+  if (absl::SimpleAtoi(tf_min_gpu_core_count, &min_gpu_core_count)) {
     if (min_gpu_core_count >= 0) {
       return min_gpu_core_count;
     }
@@ -2243,10 +2243,10 @@ se::CudaComputeCapability ComputeCapabilityFromString(
   CHECK(dot_pos != string::npos)
       << "Illegal version name: [" << version_name << "]";
   string major_str = version_name.substr(0, dot_pos);
-  CHECK(strings::safe_strto32(major_str, &major_part))
+  CHECK(absl::SimpleAtoi(major_str, &major_part))
       << "Illegal version name: [" << version_name << "]";
   string minor_str = version_name.substr(dot_pos + 1);
-  CHECK(strings::safe_strto32(minor_str, &minor_part))
+  CHECK(absl::SimpleAtoi(minor_str, &minor_part))
       << "Illegal version name: [" << version_name << "]";
   return se::CudaComputeCapability{major_part, minor_part};
 }
