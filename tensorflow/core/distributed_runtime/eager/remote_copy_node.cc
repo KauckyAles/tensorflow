@@ -242,7 +242,8 @@ void RemoteCopyNode::RunRemoteRecv(EagerOperation* op, StatusCallback done) {
   // Blocks until send has completed.
   absl::Status send_status = captured_state_->GetSendStatus();
   if (!send_status.ok()) {
-    captured_state_->dst()->PoisonRemote(status, recv_device_, context_view_id);
+    captured_state_->dst()->PoisonRemote(send_status, recv_device_,
+                                         context_view_id);
     done(send_status);
     return;
   }
