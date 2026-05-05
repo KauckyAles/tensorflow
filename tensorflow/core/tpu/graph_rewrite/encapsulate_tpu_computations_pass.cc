@@ -1713,6 +1713,15 @@ absl::StatusOr<absl::flat_hash_set<int>> FindArgsToLiftForIfNode(
       std::unique_ptr<FunctionBody> else_branch_fbody,
       InstantiateAssociatedFunction(if_node, "else_branch", fld));
 
+  if (then_branch_fbody->arg_nodes.size() < num_args) {
+    return absl::InvalidArgumentError(
+        "then_branch function has fewer arguments than expected by If node");
+  }
+  if (else_branch_fbody->arg_nodes.size() < num_args) {
+    return absl::InvalidArgumentError(
+        "else_branch function has fewer arguments than expected by If node");
+  }
+
   for (int i = 0; i < num_args; ++i) {
     bool used = false;
 
@@ -1777,6 +1786,10 @@ absl::StatusOr<absl::flat_hash_set<int>> FindArgsToLiftForWhileNode(
   std::unique_ptr<FunctionBody> cond_fbody;
   TF_RETURN_IF_ERROR(FunctionDefToBodyHelper(
       *cond_fdef, AttrSlice(&cond_func.attr()), fld, &cond_fbody));
+  if (cond_fbody->arg_nodes.size() != dtypes.size()) {
+    return absl::InvalidArgumentError(
+        "While cond function arguments size mismatch");
+  }
   for (int i = 0; i < cond_fbody->arg_nodes.size(); i++) {
     const Node* arg_node = cond_fbody->arg_nodes[i];
     for (const Edge* e : arg_node->out_edges()) {
@@ -1798,6 +1811,11 @@ absl::StatusOr<absl::flat_hash_set<int>> FindArgsToLiftForWhileNode(
   std::unique_ptr<FunctionBody> body_fbody;
   TF_RETURN_IF_ERROR(FunctionDefToBodyHelper(
       *body_fdef, AttrSlice(&body_func.attr()), fld, &body_fbody));
+  if (body_fbody->arg_nodes.size() != dtypes.size() ||
+      body_fbody->ret_nodes.size() != dtypes.size()) {
+    return absl::InvalidArgumentError(
+        "While body function arguments/retvals size mismatch");
+  }
   for (int i = 0; i < body_fbody->ret_nodes.size(); i++) {
     const Node* node = body_fbody->ret_nodes[i];
     do {
@@ -2129,6 +2147,10 @@ absl::Status LiftOutsideCompilationOnlyArgsFromWhileNode(
   // For cond func, remove _Arg nodes.
   TF_ASSIGN_OR_RETURN(std::unique_ptr<FunctionBody> cond_fbody,
                       InstantiateAssociatedFunction(*while_node, "cond", fld));
+  if (cond_fbody->arg_nodes.size() != dtypes.size()) {
+    return absl::InvalidArgumentError(
+        "While cond function arguments size mismatch during lifting");
+  }
   TF_RETURN_IF_ERROR(RemoveArgsToLiftFromFunctionBody(
       args_to_lift, dtypes, lifted_arg_index_to_oc_cluster_name, index_mapping,
       cond_fbody.get()));
@@ -2144,6 +2166,11 @@ absl::Status LiftOutsideCompilationOnlyArgsFromWhileNode(
   // Placeholder nodes.
   TF_ASSIGN_OR_RETURN(std::unique_ptr<FunctionBody> body_fbody,
                       InstantiateAssociatedFunction(*while_node, "body", fld));
+  if (body_fbody->arg_nodes.size() != dtypes.size() ||
+      body_fbody->ret_nodes.size() != dtypes.size()) {
+    return absl::InvalidArgumentError(
+        "While body function arguments/retvals size mismatch during lifting");
+  }
 
   TF_RETURN_IF_ERROR(RemoveArgsToLiftFromFunctionBody(
       args_to_lift, dtypes, lifted_arg_index_to_oc_cluster_name, index_mapping,
