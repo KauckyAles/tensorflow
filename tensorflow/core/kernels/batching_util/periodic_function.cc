@@ -41,16 +41,23 @@ PeriodicFunction::PeriodicFunction(absl::AnyInvocable<void()> function,
         return interval_micros;
       }()),
       options_(options) {
-  thread_.reset(options_.env->StartThread(
-      options_.thread_options, options_.thread_name_prefix, [this]() {
-        // Record the starting time here instead of in RunLoop.  That way, if
-        // there is a delay starting RunLoop, that does not affect the timing
-        // of
-        // the first function.  (Such a delay can often happen in tests where
-        // the test simulates a large time delay immediately after calling
-        // Start.)
-        RunLoop(options_.env->NowMicros());
-      }));
+  // Record start time before scheduling a background thread to avoid race
+  // condition.
+  const int64_t start_micros = options_.env->NowMicros();
+  thread_.reset(options_.env->StartThread(options_.thread_options,
+                                          options_.thread_name_prefix,
+                                          [this, start_micros]() {
+                                            // Record the starting time here
+                                            // instead of in RunLoop.  That way,
+                                            // if there is a delay starting
+                                            // RunLoop, that does not affect the
+                                            // timing of the first function.
+                                            // (Such a delay can often happen in
+                                            // tests where the test simulates a
+                                            // large time delay immediately
+                                            // after calling Start.)
+                                            RunLoop(start_micros);
+                                          }));
 }
 
 PeriodicFunction::~PeriodicFunction() {
