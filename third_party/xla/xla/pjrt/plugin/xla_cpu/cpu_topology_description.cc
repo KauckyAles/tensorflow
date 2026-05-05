@@ -29,6 +29,7 @@ limitations under the License.
 #include "xla/tsl/platform/status_macros.h"
 #include "xla/layout.h"
 #include "xla/layout_util.h"
+#include "xla/pjrt/host_memory_spaces.h"
 #include "xla/pjrt/pjrt_common.h"
 #include "xla/pjrt/pjrt_compiler.h"
 #include "xla/pjrt/pjrt_device_description.h"
@@ -67,6 +68,63 @@ absl::StatusOr<Layout> CpuTopologyDescription::GetDefaultLayout(
   }
   Shape shape = ShapeUtil::MakeShape(element_type, dims);
   return LayoutUtil::GetWithDefaultLayout(shape).layout();
+}
+
+absl::StatusOr<int> CpuTopologyDescription::GetMemorySpaceKindForShape(
+    const Shape& shape) const {
+  if (shape.has_layout() &&
+      shape.layout().memory_space() == Layout::kHostMemorySpace) {
+    return PinnedHostMemorySpace::kKindId;
+  }
+  return CpuDeviceMemorySpace::kKindId;
+}
+
+absl::StatusOr<absl::string_view> CpuTopologyDescription::KindIdToKind(
+    int kind) const {
+  if (kind == PinnedHostMemorySpace::kKindId) {
+    return "pinned_host";
+  }
+  if (kind == CpuDeviceMemorySpace::kKindId) {
+    return "device";
+  }
+  return absl::InvalidArgumentError(
+      absl::StrCat("Unknown memory kind ID: ", kind));
+}
+
+std::vector<std::vector<absl::string_view>>
+CpuTopologyDescription::BuildRequestedOutputMemoryKinds(
+    absl::Span<const MemorySpaceColor> out_memory_spaces) const {
+  std::vector<std::vector<absl::string_view>> requested_output_memory_kinds;
+  std::vector<absl::string_view>& leaf_kinds =
+      requested_output_memory_kinds.emplace_back();
+  leaf_kinds.reserve(out_memory_spaces.size());
+  for (MemorySpaceColor color : out_memory_spaces) {
+    int kind_id = (color == Layout::kHostMemorySpace)
+                      ? PinnedHostMemorySpace::kKindId
+                      : CpuDeviceMemorySpace::kKindId;
+    leaf_kinds.push_back(KindIdToKind(kind_id).value());
+  }
+  return requested_output_memory_kinds;
+}
+
+absl::StatusOr<std::vector<absl::string_view>>
+CpuTopologyDescription::GetMemoryKindsForShape(const Shape& shape) const {
+  std::vector<absl::string_view> memory_kinds;
+  auto recurse = [&memory_kinds, this](auto& self,
+                                       const Shape& s) -> absl::Status {
+    if (!s.IsTuple()) {
+      TF_ASSIGN_OR_RETURN(int kind_id, GetMemorySpaceKindForShape(s));
+      TF_ASSIGN_OR_RETURN(absl::string_view kind, KindIdToKind(kind_id));
+      memory_kinds.push_back(kind);
+      return absl::OkStatus();
+    }
+    for (const auto& element_shape : s.tuple_shapes()) {
+      TF_RETURN_IF_ERROR(self(self, element_shape));
+    }
+    return absl::OkStatus();
+  };
+  TF_RETURN_IF_ERROR(recurse(recurse, shape));
+  return memory_kinds;
 }
 
 absl::StatusOr<uint64_t> CpuTopologyDescription::Fingerprint() const {
