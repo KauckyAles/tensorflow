@@ -1051,6 +1051,26 @@ cc_library(
 )
 
 cc_library(
+    name = "rng_seed_thunk",
+    srcs = ["rng_seed_thunk.cc"],
+    hdrs = ["rng_seed_thunk.h"],
+    deps = [
+        ":thunk",
+        "//xla:shape_util",
+        "//xla:util",
+        "//xla/runtime:buffer_use",
+        "//xla/service:buffer_assignment",
+        "//xla/stream_executor:device_address",
+        "//xla/tsl/concurrency:async_value",
+        "//xla/tsl/platform:statusor",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings:str_format",
+        "@tsl//tsl/platform:random",
+    ],
+)
+
+cc_library(
     name = "sort_lib",
     srcs = ["sort_lib.cc"],
     hdrs = ["sort_lib.h"],
@@ -1445,6 +1465,23 @@ xla_cc_test(
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/strings",
         "@com_google_googletest//:gtest",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+xla_cc_test(
+    name = "rng_seed_thunk_test",
+    srcs = ["rng_seed_thunk_test.cc"],
+    deps = [
+        ":buffer_allocations",
+        ":rng_seed_thunk",
+        ":thunk",
+        ":thunk_testlib",
+        "//xla:literal_util",
+        "//xla/service:buffer_assignment",
+        "//xla/tsl/concurrency:async_value",
+        "//xla/tsl/platform:statusor",
+        "//xla/tsl/platform:test",
         "@com_google_googletest//:gtest_main",
     ],
 )
