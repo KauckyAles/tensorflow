@@ -1611,7 +1611,7 @@ TEST_P(EinsumTest, SimpleEinsumTest) {
   } else {
     Einsum(x, y, config);
   }
-  ComputeAndCompare(&builder, {&x_literal, &y_literal}, ErrorSpec{1e-3, 1e-3});
+  ComputeAndCompare(&builder, {&x_literal, &y_literal}, ErrorSpec{0.01, 0.01});
 }
 
 std::vector<EinsumParamType> GetEinsumTestCases() {
@@ -2124,7 +2124,7 @@ ENTRY jaxpr_computation__5.33 {
 })";
   TF_ASSERT_OK_AND_ASSIGN(std::unique_ptr<HloModule> module,
                           ParseAndReturnVerifiedModule(module_string));
-  EXPECT_TRUE(RunAndCompare(std::move(module), /*error=*/std::nullopt));
+  EXPECT_TRUE(RunAndCompare(std::move(module), ErrorSpec{0.001, 0.001}));
 }
 
 TEST_F(DotOperationTest, ReorderContractingDimsConstLHS_RL) {

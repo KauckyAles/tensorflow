@@ -173,6 +173,12 @@ class AlgebraicSimplifierOptions {
     return enable_move_dot_param_to_rhs_;
   }
 
+  void set_enable_dot_operand_swap(bool enable_dot_operand_swap) {
+    enable_dot_operand_swap_ = enable_dot_operand_swap;
+  }
+
+  bool enable_dot_operand_swap() const { return enable_dot_operand_swap_; }
+
   // This platform will not run the DotDecomposer to canonicalize dots.
   void set_supports_non_canonical_dots(bool supports_non_canonical_dots) {
     supports_non_canonical_dots_ = supports_non_canonical_dots;
@@ -403,6 +409,7 @@ class AlgebraicSimplifierOptions {
   bool supports_non_canonical_dots_{true};
   bool enable_dot_to_multiply_rewrite_{true};
   bool enable_move_dot_param_to_rhs_{false};
+  bool enable_dot_operand_swap_{false};
   bool enable_conv_simplification_{true};
   bool enable_conv_operand_swap_{true};
   bool enable_conv_add_multiply_reorder_{false};
