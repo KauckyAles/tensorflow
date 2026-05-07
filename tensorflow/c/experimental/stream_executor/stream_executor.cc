@@ -371,8 +371,16 @@ class CStreamExecutor : public StreamExecutorCommon {
 
   absl::StatusOr<std::unique_ptr<Stream>> CreateStream(
       std::optional<std::variant<StreamPriority, int>> priority) override {
+    std::optional<int> priority_as_int;
+    if (priority.has_value()) {
+      if (std::holds_alternative<StreamPriority>(*priority)) {
+        priority_as_int = static_cast<int>(std::get<StreamPriority>(*priority));
+      } else {
+        priority_as_int = std::get<int>(*priority);
+      }
+    }
     auto stream = std::make_unique<CStream>(&device_, stream_executor_, this);
-    TF_RETURN_IF_ERROR(stream->Create());
+    TF_RETURN_IF_ERROR(stream->Create(priority_as_int));
     return std::move(stream);
   }
 
