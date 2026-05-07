@@ -66,9 +66,12 @@ class MemorySpaceAssignmentCostAnalysisTest
             "HloCostAnalysis",
             CreateHloCostAnalysisCalculator(*hlo_cost_analysis_wrapper_),
             /*enable_cache=*/false));
-    TF_ASSIGN_OR_RETURN(cost_analysis_,
-                        CostAnalysis::Create(*op_cost_manager_, options_,
-                                             &alias_info_, *module));
+    TF_ASSIGN_OR_RETURN(std::unique_ptr<HloAliasAnalysis> alias_analysis,
+                        HloAliasAnalysis::Run(module, &alias_info_));
+    TF_ASSIGN_OR_RETURN(
+        cost_analysis_,
+        CostAnalysis::Create(*op_cost_manager_, options_, &alias_info_, *module,
+                             alias_analysis.get()));
     return absl::OkStatus();
   }
 
