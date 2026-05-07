@@ -110,6 +110,10 @@ cc_library(
         "//tensorflow/core:framework",
         "//tensorflow/core:lib",
         "//tensorflow/core:lib_internal",
+        "//tensorflow/core/framework:device_attributes_proto_cc",
+        "//tensorflow/core/framework:step_stats_proto_cc",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/status",
         "@tsl//tsl/platform:stacktrace",
     ],
 )
@@ -270,6 +274,8 @@ tf_cuda_library(
         "//tensorflow/core:lib_internal",
         "//tensorflow/core:protos_all_cc",
         "//tensorflow/core/profiler/lib:device_profiler_session",
+        "//tensorflow/core/protobuf:worker_proto_cc",
+        "@com_google_absl//absl/status",
     ],
 )
 
@@ -545,7 +551,9 @@ cc_library(
         "//tensorflow/core:core_cpu_internal",
         "//tensorflow/core:framework",
         "//tensorflow/core:lib",
+        "//tensorflow/core/framework:device_attributes_proto_cc",
         "//tensorflow/core/protobuf:worker_proto_cc",
+        "@com_google_absl//absl/status",
     ],
 )
 
@@ -558,6 +566,9 @@ cc_library(
         "//tensorflow/core:core_cpu_internal",
         "//tensorflow/core:lib",
         "//tensorflow/core:protos_all_cc",
+        "//tensorflow/core/framework:step_stats_proto_cc",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/strings:str_format",
     ],
 )
 
