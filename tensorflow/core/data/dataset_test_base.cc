@@ -476,7 +476,7 @@ absl::Status DatasetOpsTestBase::RunFunction(
   DataTypeVector arg_types = result.arg_types;
   DataTypeVector ret_types = result.ret_types;
 
-  std::unique_ptr<Graph> g(new Graph(OpRegistry::Global()));
+  std::unique_ptr<Graph> g = std::make_unique<Graph>(OpRegistry::Global());
   TF_RETURN_IF_ERROR(
       ConvertNodeDefsToGraph(graph_options, result.nodes, g.get()));
 
