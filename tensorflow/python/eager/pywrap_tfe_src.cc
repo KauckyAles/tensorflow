@@ -34,6 +34,7 @@ limitations under the License.
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
+#include "absl/synchronization/mutex.h"
 #include "absl/types/span.h"
 #include "tensorflow/c/c_api.h"
 #include "tensorflow/c/eager/c_api.h"
@@ -42,6 +43,16 @@ limitations under the License.
 #include "tensorflow/c/eager/tape.h"
 #include "tensorflow/c/eager/tfe_context_internal.h"
 #include "tensorflow/c/eager/tfe_op_internal.h"
+
+// Added for free-threaded run. Locks are no-op when GIL is enabled.
+#ifdef Py_GIL_DISABLED
+#define LOCK_READER(m) absl::ReaderMutexLock lock(&m)
+#define LOCK_WRITER(m) absl::WriterMutexLock lock(&m)
+#else
+#define LOCK_READER(m)
+#define LOCK_WRITER(m)
+#endif
+
 #include "tensorflow/c/eager/tfe_tensorhandle_internal.h"
 #include "tensorflow/c/tf_attrtype.h"
 #include "tensorflow/c/tf_datatype.h"
@@ -104,6 +115,12 @@ thread_local std::unordered_map<TFE_Context*,                        // NOLINT
 thread_local tensorflow::TF_StatusPtr thread_local_tf_status(  // NOLINT
     nullptr, tensorflow::internal::TF_StatusDeleter());        // NOLINT
 
+// Added for free-threaded run.
+#ifdef Py_GIL_DISABLED
+static absl::Mutex attr_to_inputs_mutex(absl::kConstInit);
+static absl::Mutex attr_to_defaults_mutex(absl::kConstInit);
+#endif
+
 std::unique_ptr<TFE_Op, OpDeleter> ReleaseThreadLocalOp(TFE_Context* ctx) {
   auto it = thread_local_eager_operation_map.find(ctx);
   if (it == thread_local_eager_operation_map.end()) {
@@ -161,17 +178,22 @@ tensorflow::gtl::FlatMap<string, AttrToInputsMap*>* GetAllAttrToInputsMaps() {
   return all_attr_to_input_maps;
 }
 
-// This function doesn't use a lock, since we depend on the GIL directly.
 AttrToInputsMap* GetAttrToInputsMapHoldingGIL(const tensorflow::OpDef& op_def) {
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 4
+#ifndef Py_GIL_DISABLED
   DCHECK(PyGILState_Check())
       << "This function needs to hold the GIL when called.";
 #endif
+#endif
   auto* all_attr_to_input_maps = GetAllAttrToInputsMaps();
-  auto* output =
-      tensorflow::gtl::FindPtrOrNull(*all_attr_to_input_maps, op_def.name());
-  if (output != nullptr) {
-    return output;
+
+  {
+    LOCK_READER(attr_to_inputs_mutex);
+    auto* output =
+        tensorflow::gtl::FindPtrOrNull(*all_attr_to_input_maps, op_def.name());
+    if (output != nullptr) {
+      return output;
+    }
   }
 
   std::unique_ptr<AttrToInputsMap> m(new AttrToInputsMap);
@@ -188,12 +210,21 @@ AttrToInputsMap* GetAttrToInputsMapHoldingGIL(const tensorflow::OpDef& op_def) {
   }
 
   auto* retval = m.get();
-  (*all_attr_to_input_maps)[op_def.name()] = m.release();
+
+  {
+    LOCK_WRITER(attr_to_inputs_mutex);
+    // Double check
+    auto* output =
+        tensorflow::gtl::FindPtrOrNull(*all_attr_to_input_maps, op_def.name());
+    if (output != nullptr) {
+      return output;
+    }
+    (*all_attr_to_input_maps)[op_def.name()] = m.release();
+  }
 
   return retval;
 }
 
-// This function doesn't use a lock, since we depend on the GIL directly.
 tensorflow::gtl::FlatMap<
     string, tensorflow::gtl::FlatMap<string, tensorflow::DataType>*>*
 GetAllAttrToDefaultsMaps() {
@@ -205,14 +236,20 @@ GetAllAttrToDefaultsMaps() {
 tensorflow::gtl::FlatMap<string, tensorflow::DataType>*
 GetAttrToDefaultsMapHoldingGIL(const tensorflow::OpDef& op_def) {
 #if PY_MAJOR_VERSION >= 3 && PY_MINOR_VERSION >= 4
+#ifndef Py_GIL_DISABLED
   DCHECK(PyGILState_Check())
       << "This function needs to hold the GIL when called.";
 #endif
+#endif
   auto* all_attr_to_defaults_maps = GetAllAttrToDefaultsMaps();
-  auto* output =
-      tensorflow::gtl::FindPtrOrNull(*all_attr_to_defaults_maps, op_def.name());
-  if (output != nullptr) {
-    return output;
+
+  {
+    LOCK_READER(attr_to_defaults_mutex);
+    auto* output = tensorflow::gtl::FindPtrOrNull(*all_attr_to_defaults_maps,
+                                                  op_def.name());
+    if (output != nullptr) {
+      return output;
+    }
   }
 
   auto* new_map = new tensorflow::gtl::FlatMap<string, tensorflow::DataType>;
@@ -223,9 +260,18 @@ GetAttrToDefaultsMapHoldingGIL(const tensorflow::OpDef& op_def) {
     }
   }
 
-  (*all_attr_to_defaults_maps)[op_def.name()] = new_map;
-
-  return new_map;
+  {
+    LOCK_WRITER(attr_to_defaults_mutex);
+    // Double check
+    auto* output = tensorflow::gtl::FindPtrOrNull(*all_attr_to_defaults_maps,
+                                                  op_def.name());
+    if (output != nullptr) {
+      delete new_map;
+      return output;
+    }
+    (*all_attr_to_defaults_maps)[op_def.name()] = new_map;
+    return new_map;
+  }
 }
 
 struct FastPathOpExecInfo {
