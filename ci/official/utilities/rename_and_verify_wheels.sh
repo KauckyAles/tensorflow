@@ -85,11 +85,16 @@ else
 fi
 
 if [[ "$TFCI_WHL_IMPORT_TEST_ENABLE" == "1" ]]; then
-  # FIXME: Preventing the error: 
+  # Preventing the error: 
   #   CUDA Runtime error: cudaErrorInsufficientDriver: 
   #     CUDA driver version is insufficient for CUDA runtime version
-  if [[ ! "$TFCI" =~ "rbe" ]]; then
-    export CUDA_VISIBLE_DEVICES="-1"
+  # This happens when the host VM's kernel driver (KMD) is older than the
+  # CUDA toolkit requires. Since pip runs outside Bazel and falls back to the
+  # host's KMD, we configure the LD_LIBRARY_PATH to point to Bazel's 
+  # hermetic UMD and toolkit libraries when hermetic CUDA UMD is enabled.
+  if [[ "$TFCI_BAZEL_HERMETIC_CUDA_UMD_ENABLE" == "1" ]]; then
+    bazel_output_base=$(bazel info output_base)
+    export LD_LIBRARY_PATH="$bazel_output_base/external/cuda_driver/lib:$bazel_output_base/external/local_config_cuda/cuda/cuda/lib:$bazel_output_base/external/cuda_cupti/lib:$bazel_output_base/external/cuda_nvrtc/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
   fi
 
   "$python" -c '
