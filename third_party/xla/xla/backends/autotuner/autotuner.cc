@@ -385,6 +385,11 @@ tsl::Future<Autotuner::Config> Autotuner::TuneBestConfig(
         absl::StrCat("Autotuning failed for HLO: ", instr->ToString(),
                      ". No supported configs found for this instruction."));
   }
+  if (supported_configs.size() == 1) {
+    VLOG(1) << "Found only one supported config: "
+            << supported_configs[0].ToString();
+    return std::move(supported_configs[0]);
+  }
   VLOG(1) << "Found total of " << supported_configs.size()
           << " supported configs.";
 
