@@ -276,7 +276,7 @@ class InputList {
       const std::initializer_list<Input>& inputs)  // NOLINT(runtime/explicit)
       : inputs_(inputs.begin(), inputs.end()) {}
 
-  InputList(const absl::Span<const Input>& inputs)  // NOLINT(runtime/explicit)
+  InputList(const absl::Span<const Input> inputs)  // NOLINT(runtime/explicit)
       : inputs_(inputs.begin(), inputs.end()) {}
 
   InputList(
