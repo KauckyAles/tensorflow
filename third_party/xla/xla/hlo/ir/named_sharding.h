@@ -101,6 +101,13 @@ class NamedSharding {
            manual_axes_ == other.manual_axes_;
   }
 
+  bool LogicalEquals(const NamedSharding& other) const {
+    if (IsReplicated() && other.IsReplicated()) {
+      return true;
+    }
+    return *this == other;
+  }
+
   bool operator!=(const NamedSharding& other) const {
     return !(*this == other);
   }

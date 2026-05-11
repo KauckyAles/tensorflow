@@ -541,6 +541,19 @@ class HloSharding {
     }
     return *this == V3ToV2Sharding(*other.named_sharding_);
   }
+
+  // Returns true if the shardings are logically equal, i.e., they are equal
+  // regardless of their representation.
+  // This is identical to `operator==` except that it allows for comparing
+  // fully replicated shardings with different mesh configurations.
+  bool LogicalEquals(const HloSharding& other) const {
+    if (named_sharding_.has_value() && other.named_sharding_.has_value()) {
+      return named_sharding_->LogicalEquals(*other.named_sharding_);
+    }
+    // V2/V1 comparisons should be the same as logical equality.
+    return *this == other;
+  }
+
   bool operator!=(const HloSharding& other) const { return !(*this == other); }
 
   template <typename H>

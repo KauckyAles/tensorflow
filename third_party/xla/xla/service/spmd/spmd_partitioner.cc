@@ -466,7 +466,7 @@ void PartitionedHlo::AddReshardCache(const HloSharding& sharding,
 
 PartitionedHlo PartitionedHlo::Reshard(const HloSharding& target,
                                        std::optional<Literal> pad_value) const {
-  if (sharding() == target) {
+  if (sharding().LogicalEquals(target)) {
     return *this;
   }
   // Handling for constant resharding from non-manual sharding to manual.
@@ -548,7 +548,7 @@ PartitionedHlo PartitionedHlo::ReshardNoCache(
     return PartitionedHlo(tuple, base_shape_, state_);
   }
 
-  if (sharding() == target) {
+  if (sharding().LogicalEquals(target)) {
     return *this;
   }
 
