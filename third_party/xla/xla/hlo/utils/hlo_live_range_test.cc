@@ -609,5 +609,85 @@ ENTRY %main {
   EXPECT_EQ(hlo_live_range_->ToString(), expected_string);
 }
 
+TEST_F(HloLiveRangeTest, AsyncCallLateBinding) {
+  std::string hlo_string = R"(
+HloModule AsyncCall, is_scheduled=true, entry_computation_layout={(f32[4096]{0},f32[4096]{0})->f32[4096]{0}}
+
+%called_computation (param_0: f32[4096], param_1: f32[4096]) -> f32[4096] {
+  %param_0 = f32[4096]{0} parameter(0)
+  %param_1 = f32[4096]{0} parameter(1)
+  %negate_2 = f32[4096]{0} negate(%param_0)
+  %negate_3 = f32[4096]{0} negate(%param_1)
+  ROOT %result.1 = f32[4096]{0} add(%negate_2, %negate_3)
+}
+
+%async_wrapped (async_param: f32[4096], async_param.1: f32[4096]) -> f32[4096] {
+  %async_param = f32[4096]{0} parameter(0)
+  %async_param.1 = f32[4096]{0} parameter(1)
+  ROOT %call = f32[4096]{0} call(%async_param, %async_param.1), to_apply=%called_computation
+}
+
+ENTRY %main (a: f32[4096], b: f32[4096]) -> f32[4096] {
+  %a = f32[4096] parameter(0)
+  %b = f32[4096] parameter(1)
+  %negate_0 = f32[4096] negate(%a)
+  %negate_1 = f32[4096] negate(%b)
+  %async-start = ((f32[4096]), (), u32[]) async-start(%negate_0), calls=%async_wrapped
+  %async-update = ((f32[4096], f32[4096]), f32[4096], u32[]) async-update(%async-start, %negate_1)
+  %add_0 = f32[4096] add(f32[4096]{0} %negate_0, f32[4096]{0} %negate_1)
+  %async-done = f32[4096] async-done(%async-update)
+  ROOT %add_1 = f32[4096] add(%add_0, %async-done)
+}
+)";
+
+  /*
+    0: a
+    1: b
+    2: negate_0
+    3: negate_1
+    4: async-param
+    5: async-param.1
+    6: param_0
+    7: param_1
+    8: negate_2
+    9: negate_3
+    10: result.1
+    11: call
+    12: async-start
+    13: async-update
+    14: add_0
+    15: async-done
+    16: add_1
+  */
+
+  TF_ASSERT_OK_AND_ASSIGN(module_, ParseAndReturnVerifiedModule(hlo_string));
+  const HloSchedule& schedule = module_->schedule();
+  Analyze(schedule);
+
+  CheckSchedule();
+
+  TF_ASSERT_OK_AND_ASSIGN(std::unique_ptr<HloAliasAnalysis> aa,
+                          HloAliasAnalysis::Run(module_.get(), &alias_info_));
+
+  TF_ASSERT_OK_AND_ASSIGN(std::unique_ptr<HloLiveRange> hlo_live_range,
+                          HloLiveRange::Run(module_->schedule(), *aa,
+                                            module_->entry_computation()));
+
+  absl::flat_hash_map<std::string, std::pair<int32_t, int32_t>> inst_ranges;
+  for (auto& [value, time_bound] : hlo_live_range->buffer_live_ranges()) {
+    inst_ranges[value->instruction()->name()] = {time_bound.start,
+                                                 time_bound.end};
+  }
+
+  EXPECT_EQ(inst_ranges["a"], std::make_pair(0, 17));
+  EXPECT_EQ(inst_ranges["b"], std::make_pair(0, 17));
+
+  EXPECT_EQ(inst_ranges["add_0"], std::make_pair(14, 16));
+  EXPECT_EQ(inst_ranges["add_1"], std::make_pair(16, 17));
+
+  EXPECT_EQ(inst_ranges["negate_0"], std::make_pair(2, 15));
+  EXPECT_EQ(inst_ranges["negate_1"], std::make_pair(3, 15));
+}
+
 }  // namespace
 }  // namespace xla
