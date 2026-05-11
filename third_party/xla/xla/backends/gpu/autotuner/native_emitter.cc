@@ -98,7 +98,8 @@ NativeEmitterBackend::GetSupportedConfigs(const HloInstruction& instr) {
 absl::StatusOr<std::unique_ptr<BackendConfig>>
 NativeEmitterBackend::GetDefaultConfig(const HloInstruction& instr) {
   NativeEmitterBackendConfig config;
-  if (IsSupported(instr)) {
+  if (IsSupported(instr) &&
+      debug_options().xla_gpu_native_emitter_tune_unroll_factor_for_loops()) {
     se::DeviceDescription device_description =
         target_config().device_description;
     HloFusionAnalysis fusion_analysis =
