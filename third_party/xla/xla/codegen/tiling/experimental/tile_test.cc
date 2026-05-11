@@ -73,5 +73,22 @@ TEST_F(TileTest, StringFormat) {
   )"));
 }
 
+TEST_F(TileTest, EvaluateAsConstantAlgebraicFolding) {
+  SymbolicExpr v0 = CreateDimExpr(0, &mlir_context_);
+  SymbolicExpr expr = -(v0.floorDiv(2)) + (v0 * 8 + 7).floorDiv(16) + 1;
+
+  auto result = EvaluateAsConstant(expr);
+  ASSERT_TRUE(result.has_value());
+  EXPECT_EQ(result.value(), 1);
+}
+
+TEST_F(TileTest, EvaluateAsConstantNonConstantReturnsNullopt) {
+  SymbolicExpr v0 = CreateDimExpr(0, &mlir_context_);
+  SymbolicExpr expr = v0 + 1;
+
+  auto result = EvaluateAsConstant(expr);
+  EXPECT_FALSE(result.has_value());
+}
+
 }  // namespace
 }  // namespace xla::gpu::experimental

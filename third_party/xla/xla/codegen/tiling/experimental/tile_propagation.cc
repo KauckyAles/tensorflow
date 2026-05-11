@@ -683,9 +683,8 @@ NonTrivialDimInfo GetNonTrivialDimInfo(
 
 // Returns true if the symbolic expression simplifies to the given constant.
 bool IsConstantValue(const SymbolicExpr& expr, int64_t value) {
-  auto canonical = expr.Canonicalize();
-  return canonical.GetType() == SymbolicExprType::kConstant &&
-         canonical.GetValue() == value;
+  auto constant_val = EvaluateAsConstant(expr);
+  return constant_val.has_value() && constant_val.value() == value;
 }
 
 // Consider a reshape with 1-to-n (kExpandShape) or n-to-1 (kCollapseShape)

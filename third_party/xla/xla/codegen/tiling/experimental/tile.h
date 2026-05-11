@@ -172,6 +172,11 @@ DimTile GetFullDimTile(int64_t dim_size, mlir::MLIRContext* ctx);
 //  size = SymbolicVariable(id), stride 1, upper_bound = dim_size.
 DimTile GetDefaultDimTile(int64_t id, SymbolicExpr tile_size, int64_t dim_size);
 
+// Returns the constant value of a symbolic expression evaluating at sample
+// points, if it resolves to a constant mathematically. Otherwise returns
+// std::nullopt.
+std::optional<int64_t> EvaluateAsConstant(const SymbolicExpr& expr);
+
 }  // namespace xla::gpu::experimental
 
 #endif  // XLA_CODEGEN_TILING_EXPERIMENTAL_TILE_H_

@@ -16,9 +16,11 @@ limitations under the License.
 #include "xla/codegen/tiling/experimental/tile.h"
 
 #include <cstdint>
+#include <optional>
 #include <string>
 #include <utility>
 
+#include "absl/algorithm/container.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
@@ -33,10 +35,40 @@ limitations under the License.
 #include "mlir/IR/MLIRContext.h"
 #include "mlir/Support/LLVM.h"
 #include "xla/codegen/tiling/experimental/tiling_space.h"
+#include "xla/hlo/analysis/indexing_map.h"
 #include "xla/hlo/analysis/symbolic_expr.h"
 #include "xla/hlo/analysis/symbolic_map.h"
 
 namespace xla::gpu::experimental {
+
+std::optional<int64_t> EvaluateAsConstant(const SymbolicExpr& expr) {
+  auto canonical = expr.Canonicalize();
+  if (canonical.GetType() == SymbolicExprType::kConstant) {
+    return canonical.GetValue();
+  }
+
+  llvm::DenseSet<VariableID> used_vars;
+  canonical.GetUsedVariables(used_vars);
+  if (used_vars.empty()) {
+    return std::nullopt;
+  }
+  VariableID max_var_id = *absl::c_max_element(used_vars);
+
+  // Simplify the expression using IndexingMap's advanced algebraic folder
+  mlir::MLIRContext* ctx = canonical.GetContext();
+  SymbolicMap map = SymbolicMap::Get(ctx, max_var_id + 1, 0, {canonical});
+  llvm::SmallVector<int64_t> dim_upper_bounds(max_var_id + 1, 16384);
+  IndexingMap indexing_map =
+      IndexingMap::FromTensorSizes(map, dim_upper_bounds, {});
+  indexing_map.Simplify(IndexingMap::SimplifyPointDimensions::kReplace);
+
+  auto simplified = indexing_map.GetSymbolicMap().GetResults()[0];
+  if (simplified.GetType() == SymbolicExprType::kConstant) {
+    return simplified.GetValue();
+  }
+  return std::nullopt;
+}
+
 namespace {
 
 using ::llvm::ArrayRef;
@@ -57,12 +89,13 @@ absl::StatusOr<SmallVector<int64_t>> ConvertSymbolicExprsToInts(
   SmallVector<int64_t> result;
   result.reserve(symbolic_exprs.size());
   for (const auto& symbolic_expr : symbolic_exprs) {
-    SymbolicExpr canonical_expr = symbolic_expr.Canonicalize();
-    if (canonical_expr.GetType() != SymbolicExprType::kConstant) {
-      return absl::InvalidArgumentError(absl::StrCat(
-          "Symbolic expression is not a constant: ", canonical_expr));
+    auto constant_val = EvaluateAsConstant(symbolic_expr);
+    if (!constant_val.has_value()) {
+      return absl::InvalidArgumentError(
+          absl::StrCat("Symbolic expression is not a constant: ",
+                       symbolic_expr.Canonicalize()));
     }
-    result.push_back(canonical_expr.GetValue());
+    result.push_back(constant_val.value());
   }
   return result;
 }
