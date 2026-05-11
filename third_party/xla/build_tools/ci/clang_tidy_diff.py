@@ -407,8 +407,31 @@ class ClangTidyDiffFilter:
     if main_source:
       norm_main_source = normalize_path(main_source, self.repo_root)
       self.seen_files.add(norm_main_source)
+    # yaml_path looks like:
+    # x/y/z/bazel_clang_tidy/path/to/file.cc.<target>.clang-tidy.yml.
+    yaml_file_path = pathlib.Path(yaml_file)
+    aspect_dir: str | None
+    idx, aspect_dir = next(
+        (
+            (idx, part)
+            for idx, part in enumerate(yaml_file_path.parts)
+            if part.startswith("bazel_clang_tidy_")
+        ),
+        (0, None),
+    )
+    if aspect_dir:
+      toplevel = [aspect_dir.removeprefix("bazel_clang_tidy_")]
+      rel_parts = yaml_file_path.parts[idx + 1 :]
+      # Remove <target>.clang-tidy.yml suffix.
+      filename = rel_parts[-1].rsplit(".", 3)[0]
+    else:
+      toplevel = []
+      rel_parts = yaml_file_path.parts
+      # Remove .clang-tidy.yml without the <target>.
+      filename = rel_parts[-1].rsplit(".", 2)[0]
     report_source = normalize_path(
-        yaml_file.removesuffix(".clang-tidy.yaml"), self.repo_root
+        pathlib.Path(*toplevel, *rel_parts[:-1], filename).as_posix(),
+        self.repo_root,
     )
     if report_source in self.diff_ranges:
       self.seen_files.add(report_source)
