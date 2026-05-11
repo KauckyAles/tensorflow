@@ -1,3 +1,24 @@
+diff --ruN a/stablehlo/stablehlo/dialect/Base.td b/stablehlo/stablehlo/dialect/Base.td
+--- stablehlo/stablehlo/dialect/Base.td
++++ stablehlo/stablehlo/dialect/Base.td
+@@ -181,7 +181,7 @@
+ 
+ def HLO_Tensor : RankedTensorOf<[HLO_Float, HLO_Pred, HLO_Int, HLO_Complex, HLO_QuantizedInt]>;
+ 
+-def HLO_Future : Type<CPred<"::llvm::isa<FutureType>($_self)">, "future">;
++def HLO_Future : Type<CPred<"::llvm::isa<::mlir::stablehlo::FutureType>($_self)">, "future">;
+ 
+ def HLO_ScalarTensor: 0DTensorOf<[HLO_Float, HLO_Pred, HLO_Int, HLO_Complex, HLO_QuantizedInt]>;
+ 
+@@ -237,7 +237,7 @@
+ 
+ def HLO_CustomCallTuple : NestedTupleOf<[HLO_AnyTensor, HLO_Buffer, HLO_Token]>;
+ 
+-def HLO_CustomCallValue : AnyTypeOf<[HLO_AnyTensor, HLO_Buffer, HLO_Token, HLO_CustomCallTuple]>;
++def HLO_CustomCallValue : AnyTypeOf<[HLO_AnyTensor, HLO_Buffer, HLO_Token, HLO_CustomCallTuple, HLO_Future]>;
+ 
+ //===----------------------------------------------------------------------===//
+ // HLO combined type definitions.
 diff --ruN a/stablehlo/stablehlo/integrations/cpp/builder/AttrTypeBuilderUtil.h b/stablehlo/stablehlo/integrations/cpp/builder/AttrTypeBuilderUtil.h
 --- stablehlo/stablehlo/integrations/cpp/builder/AttrTypeBuilderUtil.h
 +++ stablehlo/stablehlo/integrations/cpp/builder/AttrTypeBuilderUtil.h
@@ -565,6 +586,24 @@ diff --ruN a/stablehlo/stablehlo/reference/Tensor.cpp b/stablehlo/stablehlo/refe
              return std::complex<double>(value.real().convertToDouble(),
                                          value.imag().convertToDouble());
            });
+diff --ruN a/stablehlo/stablehlo/tests/ops_stablehlo.mlir b/stablehlo/stablehlo/tests/ops_stablehlo.mlir
+--- stablehlo/stablehlo/tests/ops_stablehlo.mlir
++++ stablehlo/stablehlo/tests/ops_stablehlo.mlir
+@@ -5018,6 +5018,14 @@
+   %0:3 = "stablehlo.custom_call"(%x, %token) {backend_config="", call_target_name = "foo", has_side_effect = false} : (tensor<2xf32>, !stablehlo.token) -> (tensor<2xf32>, tensor<2xf32>, !stablehlo.token)
+   %1 = "stablehlo.add"(%0#0, %0#1) : (tensor<2xf32>, tensor<2xf32>) -> tensor<2xf32>
+   func.return %1 : tensor<2xf32>
++}
++
++// -----
++
++// CHECK: func @custom_call_future
++func.func @custom_call_future(%arg0: !stablehlo.future<tensor<2xf32>>) -> !stablehlo.future<tensor<2xf32>> {
++  %0 = "stablehlo.custom_call"(%arg0) {call_target_name = "foo"} : (!stablehlo.future<tensor<2xf32>>) -> !stablehlo.future<tensor<2xf32>>
++  func.return %0 : !stablehlo.future<tensor<2xf32>>
+ }
+ 
+ // -----
 diff --ruN a/stablehlo/stablehlo/tests/transforms/mesh_axes_replica_group_compatibility.mlir b/stablehlo/stablehlo/tests/transforms/mesh_axes_replica_group_compatibility.mlir
 --- stablehlo/stablehlo/tests/transforms/mesh_axes_replica_group_compatibility.mlir
 +++ stablehlo/stablehlo/tests/transforms/mesh_axes_replica_group_compatibility.mlir
