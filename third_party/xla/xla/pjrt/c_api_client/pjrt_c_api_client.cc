@@ -610,6 +610,7 @@ absl::StatusOr<std::pair<std::string, std::string>> SerializeProgram(
             TF_ASSIGN_OR_RETURN(
                 std::string code,
                 xla::Serialize(module.mlir_module(), version_string,
+                               GetDefaultSdyVersion(),
                                /*inplace=*/allow_in_place_mlir_modification));
             return {std::make_pair(code, std::string(pjrt::kMlirFormat))};
           },
